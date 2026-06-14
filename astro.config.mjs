@@ -54,7 +54,7 @@ const adapter = process.env.CF_WORKERS
 export default defineConfig({
 	site: siteConfig.site_url,
 
-	base: "/Firefly-Blog/",
+	base: "/",
 	trailingSlash: "always",
 
 	adapter,
