@@ -1,47 +1,108 @@
-name: Deploy to Pages Branch
+# workflow 的名称，会在 GitHub Actions 页面显示
+name: Deploy to GitHub Pages
 
+# 触发条件：什么时候运行这个 workflow
 on:
-  # 每次推送到 `master` 分支时触发这个"工作流程"
-  # 如果你使用了别的分支名，请按需将 `master` 替换成你的分支名
+  # 当代码推送到 master 分支时自动运行
   push:
     branches: [ master ]
-  # 允许你在 GitHub 上的 Actions 标签中手动触发此"工作流程"
+  # 允许你在 GitHub 网页上手动触发（Actions 标签页里有个按钮）
   workflow_dispatch:
 
-# 需要写入权限来推送到pages分支
-permissions:
-  contents: write
+# 并发控制：防止多个部署任务同时运行导致冲突
+# group: "pages" 表示同一时间只有一个 pages 相关的任务在运行
+# cancel-in-progress: false 表示新任务不会取消正在运行的老任务
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
+# 整个 workflow 的权限设置（作用域是所有 job）
+# 注意：GitHub 官方 Pages 部署需要这些特定权限
+permissions:
+  contents: read      # 允许读取仓库代码（用于 checkout）
+  pages: write        # 允许部署到 GitHub Pages（关键权限）
+  id-token: write     # 允许生成 OIDC token（用于身份验证）
+
+# jobs 是一个 workflow 里的多个任务，可以并行或串行运行
 jobs:
-  build-and-deploy:
+  # ========== JOB 1: 构建 ==========
+  # 这个 job 负责：安装依赖 → 构建网站 → 打包成 artifact
+  build:
+    # 运行环境：Ubuntu 最新版（GitHub 提供的免费虚拟机）
     runs-on: ubuntu-latest
+    
+    # 这个 job 的所有步骤
     steps:
-      - name: Checkout your repository using git
+      # Step 1: 检出代码
+      # 把仓库里的代码下载到虚拟机中
+      - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      # Step 2: 安装 Node.js
+      # 因为 pnpm 需要 Node.js 环境
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          
+          node-version: '22'  # 你用的版本
+
+      # Step 3: 安装 pnpm
+      # pnpm 是一个更快的包管理器
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.14.4
-          run_install: false
-          
+          version: 9.14.4       # 指定 pnpm 版本
+          run_install: false    # 不自动安装依赖（下一步单独做）
+
+      # Step 4: 安装项目依赖
+      # 读取 package.json，下载所有需要的 npm 包
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-      
+
+      # Step 5: 构建网站
+      # 执行 package.json 里的 build 命令，生成静态文件
       - name: Build site
         run: pnpm run build
+        # 注意：确保你的 package.json 里有 "build": "astro build" 或类似命令
+        # 构建产物默认会输出到 dist/ 文件夹（Astro 的默认配置）
 
+      # Step 6: 添加 .nojekyll 文件
+      # GitHub Pages 默认使用 Jekyll 处理文件，但你的网站不是 Jekyll 项目
+      # .nojekyll 告诉 GitHub "不要用 Jekyll 处理，直接原样输出"
       - name: Create .nojekyll file
         run: touch dist/.nojekyll
-      
-      - name: Deploy to pages branch
-        uses: JamesIves/github-pages-deploy-action@v4
+        # touch 命令会在 dist 文件夹里创建一个空文件 .nojekyll
+
+      # Step 7: 上传构建产物（artifact）
+      # artifact 是 GitHub Actions 中用于在 job 之间传递文件的"包裹"
+      # 这个步骤会把 dist 文件夹打包，准备给后面的 deploy job 使用
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: pages # 部署到pages分支
-          folder: dist # Astro默认构建输出目录
-          clean: true # 清理目标分支中的旧文件
+          path: dist   # 要上传的文件夹路径（必须包含 index.html）
+
+  # ========== JOB 2: 部署 ==========
+  # 这个 job 负责：把构建好的 artifact 真正部署到 GitHub Pages 服务器
+  # 注意：needs: build 表示这个 job 必须等 build job 成功后才运行
+  deploy:
+    # 依赖关系：必须等 build job 完成
+    needs: build
+    
+    # 运行环境
+    runs-on: ubuntu-latest
+    
+    # 环境配置：告诉 GitHub 这是部署到 pages 环境
+    environment:
+      name: github-pages           # 环境名称（固定写法）
+      url: ${{ steps.deployment.outputs.page_url }}  # 部署成功后，GitHub 会提供网站 URL
+    
+    # 权限继承：使用 workflow 级别定义的权限（不需要重复写）
+    
+    # 部署步骤
+    steps:
+      # 唯一的步骤：调用官方部署 Action
+      # 它会自动找到上一步上传的 artifact，并部署到 GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment              # 给这一步起个 ID，方便上面 url 引用
+        uses: actions/deploy-pages@v4
+        # 这个 Action 会读取之前 upload-pages-artifact 上传的内容
+        # 然后自动完成部署，无需额外配置
