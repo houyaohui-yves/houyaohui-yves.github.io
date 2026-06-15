@@ -6,7 +6,7 @@ description: “买股票就是买公司的一部分”
 tags: [价值投资, 基本面分析]
 category: 投资者
 draft: false
-image: ./cover_images/yinlang-1.avif
+image: ./cover_images/bilanhangxian-2.avif
 ---
 
 ## 价值投资的起点：如何理解公司分析、方法融合与策略流派
