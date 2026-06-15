@@ -1,7 +1,7 @@
 ---
 title: Homebrew 一款开源软件包管理工具
 published: 2026-06-15
-pinned: fasle
+pinned: false
 description: Homebrew 是 macOS 和 Linux 系统上的开源软件包管理工具，可简化软件包的安装、更新、管理过程，被比作 macOS 上的 “开发工具商店”，能通过一行命令安装、更新或卸载软件，如 Node.js、Git、Vim 等。
 tags: [开发工具]
 category: 开发者
