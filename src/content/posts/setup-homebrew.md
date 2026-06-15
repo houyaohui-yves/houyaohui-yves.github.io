@@ -1,8 +1,8 @@
 ---
 title: Homebrew 一款开源软件包管理工具
 published: 2026-06-15
-pinned: true
-description: Firefly 是一款基于 Astro 框架和 Fuwari 模板开发的清新美观且现代化个人博客主题模板，专为技术爱好者和内容创作者设计。该主题融合了现代 Web 技术栈，提供了丰富的功能模块和高度可定制的界面，让您能够轻松打造出专业且美观的个人博客网站。
+pinned: fasle
+description: Homebrew 是 macOS 和 Linux 系统上的开源软件包管理工具，可简化软件包的安装、更新、管理过程，被比作 macOS 上的 “开发工具商店”，能通过一行命令安装、更新或卸载软件，如 Node.js、Git、Vim 等。
 tags: [开发工具]
 category: 开发者
 draft: false
