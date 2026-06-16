@@ -1,9 +1,9 @@
 ---
-title: 价值分析：中国移动(600941.SH)
+title: 基本面分析：中国移动(600941.SH)
 published: 2026-06-15
 pinned: false
 description: “国家级的垄断地位、极其刚性的国民需求、按月订阅的印钞机模式，这赋予了它极高的生存确定性。”
-tags: [基本面分析,中国移动]
+tags: [基本面分析,估值分析,中国移动]
 category: 投资者
 draft: false
 image: ./cover_images/bilanhangxian-3.avif
